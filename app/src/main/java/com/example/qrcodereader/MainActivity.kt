@@ -12,6 +12,7 @@ import androidx.core.content.ContextCompat
 import com.example.qrcodereader.databinding.ActivityMainBinding
 import com.google.common.util.concurrent.ListenableFuture
 import android.Manifest
+import android.content.Intent
 import androidx.camera.core.ImageAnalysis
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
@@ -19,8 +20,11 @@ import java.util.concurrent.Executors
 
 class MainActivity : AppCompatActivity() {
 
+    private var isDetected = false
+
     private val PERMISSIONS_REQUEST_CODE = 1
     private val PERMISSIONS_REQUIRED = arrayOf(Manifest.permission.CAMERA)
+
     private lateinit var binding : ActivityMainBinding
     private lateinit var cameraProviderFuture:ListenableFuture<ProcessCameraProvider>
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -37,6 +41,11 @@ class MainActivity : AppCompatActivity() {
         }
 
 
+    }
+
+    override fun onResume() {
+        super.onResume()
+        isDetected = false
     }
 
     fun hasPermissions(context: Context) = PERMISSIONS_REQUIRED.all {
@@ -91,8 +100,14 @@ class MainActivity : AppCompatActivity() {
         imageAnalysis.setAnalyzer(cameraExcutor,
             QRCodeAnalyzer(object : OnDetectListener {
                 override fun onDetect(msg: String) {
-                    Toast.makeText(this@MainActivity, "${msg}",
-                        Toast.LENGTH_SHORT).show()
+                    if(!isDetected){
+                        isDetected = true
+
+                        val intent = Intent(this@MainActivity,
+                            ResultActivity::class.java)
+                        intent.putExtra("msg",msg)
+                        startActivity(intent)
+                    }
                 }
             }))
 
